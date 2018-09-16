@@ -1,7 +1,7 @@
 var express = require("express");
 var Usuario = require("../models/usuario");
 var bcrypt = require("bcryptjs");
-
+var mdAuth = require("../middlewares/mdAuth");
 var app = express();
 
 // =======================
@@ -12,7 +12,7 @@ app.get("/", (req, res, next) => {
     if (err) {
       return res.status(500).json({
         ok: false,
-        mensaje: "Error cargando usuarios",
+        mensaje: "Error cargando usuarios", 
         errors: err
       });
     }
@@ -24,10 +24,12 @@ app.get("/", (req, res, next) => {
   });
 });
 
+
+
 // =======================
 // POST USER
 // =======================
-app.post("/", (req, res) => {
+app.post("/", mdAuth.verifyToken, (req, res) => {
   var body = req.body;
 
   var usuario = new Usuario({
@@ -47,9 +49,11 @@ app.post("/", (req, res) => {
       });
     }
 
+    usuarioSaved.password = ':)';
+
     res.status(201).json({
       ok: true,
-      usuarioSaved: usuarioSaved
+      usuario: usuarioSaved
     });
   });
 });
@@ -57,7 +61,7 @@ app.post("/", (req, res) => {
 // =======================
 // PUT USER
 // =======================
-app.put('/:id', (req, res)=> {
+app.put('/:id', mdAuth.verifyToken, (req, res)=> {
 
 	var id = req.params.id;
   var body = req.body;
@@ -80,11 +84,11 @@ app.put('/:id', (req, res)=> {
       }); 
 		}
 
-		usuario.name = body.name
-		usuario.email = body.email
-		usuario.role = body.role
+		usuario.name = body.name;
+		usuario.email = body.email;
+		usuario.role = body.role;
 
-		usuario.save((err, usuarioSaved)=>{
+		usuario.save((err, usuarioUpdated)=>{
 
 			if (err) {
 				return res.status(400).json({
@@ -94,23 +98,52 @@ app.put('/:id', (req, res)=> {
 				});
 			}
 
-			usuario.password = '¿qué dijiste, navidad?'
+			usuarioUpdated.password = ':)';
 
 			res.status(200).json({
 				ok: true,
-				usuarioSaved: usuarioSaved
+				usuario: usuarioUpdated
 			});
 
 		});
 
 	});
 
-	// res.status(201).json({
-	// 	ok: true,
-	// 	id: id
-	// });
-
 });
 
+// =======================
+// DELETE USER BY ID
+// =======================
+app.delete('/:id', mdAuth.verifyToken, (req, res) => {
+
+  var id = req.params.id;
+
+  Usuario.findByIdAndRemove(id, (err, usuarioDeleted) => {
+
+    if (err) {
+      return res.status(500).json({
+        ok: false,
+        mensaje: "Error eliminando usuario",
+        errors: err
+      });
+    }
+
+    if(!usuarioDeleted){
+      return res.status(400).json({
+        ok: false,
+        mensaje: "No existe usuario con ese id",
+        errors: {message: 'No existe usuario con ese id '}
+      });
+    }else{
+      usuarioDeleted.password = ':)'
+    }
+
+    res.status(200).json({
+      ok: true,
+      usuario: usuarioDeleted
+    });
+  })
+
+})
 
 module.exports = app;
