@@ -10,7 +10,10 @@ var app = express();
 // GET MEDICOS
 // =======================
 app.get('/', (req, res) => {
-    Medico.find().exec((err, medicos)=>{
+    Medico.find()
+    .populate('usuario', 'name email')
+    .populate('hospital')
+    .exec((err, medicos)=>{
         if(err){
             return res.status(500).json({
                 ok: false,
@@ -36,8 +39,8 @@ app.post('/', mdAuth.verifyToken, (req, res)=>{
     var medico = new Medico({
         name: body.name,
         img: body.img,
-        usuario: '5b9ecae7c1d72a23ec70c3f7',
-        hospital: '5b9ecae7c1d72a23ec70c3f7'
+        usuario: req.usuario._id,
+        hospital: body.hospital
     });
 
     medico.save((err, medicoSaved)=>{
@@ -82,7 +85,8 @@ app.put('/:id', mdAuth.verifyToken, (req, res)=>{
         }
 
         medico.name = body.name;
-        if (body.img) medico.img = body.img;
+        medico.usuario = req.usuario._id;
+        medico.hospital = body.hospital;
 
         medico.save((err, medicoUpdated)=>{
             if(err){

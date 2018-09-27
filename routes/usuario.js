@@ -8,20 +8,31 @@ var app = express();
 // GET USER
 // =======================
 app.get("/", (req, res, next) => {
-  Usuario.find({}, "name email img role").exec((err, usuarios) => {
-    if (err) {
-      return res.status(500).json({
-        ok: false,
-        mensaje: "Error cargando usuarios", 
-        errors: err
-      });
-    }
 
-    res.status(200).json({
-      ok: true,
-      usuarios: usuarios
+  var from = req.query.from || 0;
+  from = Number(from);
+
+  Usuario.find({}, "name email img role")
+    .skip(from)
+    .limit(5)
+    .exec((err, usuarios) => {
+      if (err) {
+        return res.status(500).json({
+          ok: false,
+          mensaje: "Error cargando usuarios", 
+          errors: err
+        });
+      }
+
+      Usuario.count({}, (err, cantity) => {
+        res.status(200).json({
+          ok: true,
+          usuarios: usuarios,
+          total: cantity
+        });
+      })
+
     });
-  });
 });
 
 
