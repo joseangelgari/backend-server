@@ -1,7 +1,5 @@
 var express = require("express");
 var Hospital = require("../models/hospital");
-var Usuario = require("../models/usuario");
-var bcrypt = require("bcryptjs");
 var mdAuth = require("../middlewares/mdAuth");
 var app = express();
 
