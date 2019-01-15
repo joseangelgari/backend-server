@@ -5,10 +5,24 @@ var jwt = require("jsonwebtoken");
 var SEED = require("../config/config").SEED;
 var GOOGLE_ID = require("../config/config").GOOGLE_ID;
 var GOOGLE_SECRET = require("../config/config").GOOGLE_SECRET;
+var mdAuth = require("../middlewares/mdAuth");
 
 var {OAuth2Client} = require('google-auth-library');
 
 var app = express();
+
+// =======================
+// Login Google
+// =======================
+app.get('/renovate-token', mdAuth.verifyToken, (req, res) =>{
+
+	var token = jwt.sign({ usuario: req.usuario }, SEED, { expiresIn: 14400 }) //4 horas
+
+	return res.status(200).json({
+		ok: true,
+		token: token
+	});
+})
 
 
 // =======================
@@ -28,7 +42,6 @@ app.post('/google', (req, res)=>{
 				//[CLIENT_ID_1, CLIENT_ID_2, CLIENT_ID_3]
 		});
 		const payload = ticket.getPayload();
-		const userid = payload['sub'];
 		// If request specified a G Suite domain:
 		//const domain = payload['hd'];
 
@@ -62,7 +75,8 @@ app.post('/google', (req, res)=>{
 						mensaje: 'Login Google success',
 						usuario: usuario,
 						token: token,
-						id: usuario._id
+						id: usuario._id,
+						menu: getMenu(usuario.role)
 					});
 
 				}
@@ -95,7 +109,8 @@ app.post('/google', (req, res)=>{
 						mensaje: 'Login Google success',
 						usuario: usuarioDB,
 						token: token,
-						id: usuarioDB._id
+						id: usuarioDB._id,
+						menu: getMenu(usuarioDB.role)
 					});
 
 				});
@@ -156,11 +171,44 @@ app.post('/', (req, res) => {
 			mensaje: 'Login post success',
 			usuario: usuarioDB,
 			token: token,
-			id: usuarioDB._id
+			id: usuarioDB._id,
+			menu: getMenu(usuarioDB.role)
 		});
 
 	});
 
 });
+
+function getMenu(ROLE){
+
+	var menu = [
+    {
+      title: 'Principal',
+      icon: 'icon-speedometer menu-icon',
+      submenu: [
+        {title: 'Dashboard', url: '/dashboard'},
+        {title: 'Progress Bar', url: '/progress'},
+        {title: 'Graphics', url: '/graphic1'},
+        {title: 'Promises', url: '/promises'},
+        {title: 'Rxjs', url: '/rxjs'}
+      ]
+    },
+    {
+      title: 'Maintenance',
+      icon: 'mdi mdi-lock',
+      submenu: [
+        // {title: 'Usuarios', url: '/usuarios'},
+        {title: 'Hospitales', url: '/hospitales'},
+        {title: 'Médicos', url: '/medicos'}
+      ]
+    }
+	]
+
+	if(ROLE === 'ADMIN_ROLE'){
+		menu[1].submenu.unshift({title: 'Usuarios', url: '/usuarios'});
+	}
+	
+	return menu;
+}
 
 module.exports = app;

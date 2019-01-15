@@ -43,7 +43,7 @@ app.put('/:table/:id', (req, res, next) => {
 
     if(extValid.indexOf(extFile) < 0){
         return res.status(400).json({
-            ok: true,
+            ok: false,
             mensaje: 'Extensión no válida',
             error: {message: 'Extensión no válida. Puedes seleccionar imágenes tipo: ' + extValid.join(', ')}
         });

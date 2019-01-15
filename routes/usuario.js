@@ -12,7 +12,7 @@ app.get("/", (req, res, next) => {
   var from = req.query.from || 0;
   from = Number(from);
 
-  Usuario.find({}, "name email img role")
+  Usuario.find({}, "name email img role google")
     .skip(from)
     .limit(5)
     .exec((err, usuarios) => {
@@ -72,7 +72,7 @@ app.post("/", (req, res) => {
 // =======================
 // PUT USER
 // =======================
-app.put('/:id', mdAuth.verifyToken, (req, res)=> {
+app.put('/:id', [mdAuth.verifyToken, mdAuth.verifyADMIN_ROLE_mismoUsuario], (req, res)=> {
 
 	var id = req.params.id;
   var body = req.body;
@@ -125,7 +125,7 @@ app.put('/:id', mdAuth.verifyToken, (req, res)=> {
 // =======================
 // DELETE USER BY ID
 // =======================
-app.delete('/:id', mdAuth.verifyToken, (req, res) => {
+app.delete('/:id', [mdAuth.verifyToken, mdAuth.verifyADMIN_ROLE], (req, res) => {
 
   var id = req.params.id;
 

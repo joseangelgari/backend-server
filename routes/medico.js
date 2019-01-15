@@ -11,7 +11,7 @@ var app = express();
 // =======================
 app.get('/', (req, res) => {
     Medico.find()
-    .populate('usuario', 'name email')
+    .populate('usuario', 'name email img google role')
     .populate('hospital')
     .exec((err, medicos)=>{
         if(err){
@@ -27,6 +27,37 @@ app.get('/', (req, res) => {
             medicos: medicos
           });
     });
+});
+
+// =======================
+// GET MEDICO BY ID
+// =======================
+app.get('/:id', (req, res) => {
+    var id = req.params.id;
+    Medico.findById(id)
+        .populate('usuario', 'name email img google role')
+        .exec((err, medico) => {
+            if (err) {
+                return res.status(500).json({
+                    ok: false,
+                    mensaje: "Error cargando el medico",
+                    errors: err
+                });
+            }
+
+            if (!medico) {
+                return res.status(400).json({
+                    ok: false,
+                    mensaje: "Error cargando el medico con el id:" + id,
+                    errors: { message: 'No existe un medico con ese id.' }
+                });
+            }
+
+            res.status(200).json({
+                ok: true,
+                medico: medico
+            });
+        });
 });
 
 // =======================
